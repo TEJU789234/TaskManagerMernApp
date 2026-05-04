@@ -2,6 +2,7 @@ import axios from "axios";
 import { clearAuth, getAuth } from "../utils/storage";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
 const axiosClient = axios.create({
   baseURL,
   headers: { "Content-Type": "application/json" },
@@ -20,7 +21,7 @@ axiosClient.interceptors.request.use(
 );
 
 axiosClient.interceptors.response.use(
-  (res) => res,	
+  (res) => res,
   (error) => {
     const status = error?.response?.status;
     if (status === 401) {
