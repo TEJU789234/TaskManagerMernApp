@@ -1,26 +1,38 @@
-import axiosClient from "./axiosClient";
+// axiosClient.js
+import axios from "axios";
 
-export const fetchTasksApi = async (params) => {
-  const res = await axiosClient.get("/tasks", { params });
-  return res.data; // { success, message, data: tasks[], meta: {...} }
-};
+const axiosClient = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-export const createTaskApi = async (payload) => {
-  const res = await axiosClient.post("/tasks", payload);
-  return res.data; // { success, message, data: task }
-};
+// Add request interceptor for auth token (if needed)
+axiosClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
-export const fetchTaskByIdApi = async (id) => {
-  const res = await axiosClient.get(`/tasks/${id}`);
-  return res.data; // { success, message, data: task }
-};
+// Add response interceptor for error handling
+axiosClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Handle unauthorized
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
 
-export const updateTaskApi = async (id, payload) => {
-  const res = await axiosClient.put(`/tasks/${id}`, payload);
-  return res.data; // { success, message, data: task }
-};
-
-export const deleteTaskApi = async (id) => {
-  const res = await axiosClient.delete(`/tasks/${id}`);
-  return res.data; // { success, message, data: {id} }
-};
+export default axiosClient;
